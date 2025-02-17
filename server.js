@@ -8,12 +8,9 @@ const app = express();
 app.use(express.json());
 
 mongoose
-  .connect("mongodb://localhost:27017/authAPI", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log(err));
+  .connect("mongodb://127.0.0.1:27017/authAPI")
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 app.use("/users", authRoutes);
 app.use("/contacts", contactRoutes);
