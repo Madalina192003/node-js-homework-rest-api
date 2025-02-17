@@ -5,66 +5,38 @@ exports.getAllContacts = async (req, res) => {
     const contacts = await Contact.find();
     res.json(contacts);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving contacts", error });
+    res.status(500).json({ message: error.message });
   }
 };
 
-exports.getContactById = async (req, res) => {
+exports.createContact = async (req, res) => {
+  const contact = new Contact(req.body);
   try {
-    const contact = await Contact.findById(req.params.id);
-    if (!contact) return res.status(404).json({ message: "Contact not found" });
-    res.json(contact);
+    await contact.save();
+    res.status(201).json(contact);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving contact", error });
+    res.status(400).json({ message: error.message });
   }
 };
 
-exports.addContact = async (req, res) => {
-  try {
-    const { name, email, phone, favorite } = req.body;
-    const newContact = new Contact({ name, email, phone, favorite });
-    await newContact.save();
-    res.status(201).json(newContact);
-  } catch (error) {
-    res.status(500).json({ message: "Error adding contact", error });
-  }
-};
+exports.updateFavorite = async (req, res) => {
+  const { contactId } = req.params;
+  const { favorite } = req.body;
 
-exports.updateContact = async (req, res) => {
-  try {
-    const contact = await Contact.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    if (!contact) return res.status(404).json({ message: "Contact not found" });
-    res.json(contact);
-  } catch (error) {
-    res.status(500).json({ message: "Error updating contact", error });
+  if (favorite === undefined) {
+    return res.status(400).json({ message: "missing field favorite" });
   }
-};
 
-exports.deleteContact = async (req, res) => {
   try {
-    const contact = await Contact.findByIdAndDelete(req.params.id);
-    if (!contact) return res.status(404).json({ message: "Contact not found" });
-    res.json({ message: "Contact deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting contact", error });
-  }
-};
-
-exports.updateFavoriteStatus = async (req, res) => {
-  try {
-    if (!req.body.favorite) {
-      return res.status(400).json({ message: "Missing field favorite" });
+    const contact = await Contact.findById(contactId);
+    if (!contact) {
+      return res.status(404).json({ message: "Not found" });
     }
-    const contact = await Contact.findByIdAndUpdate(
-      req.params.id,
-      { favorite: req.body.favorite },
-      { new: true }
-    );
-    if (!contact) return res.status(404).json({ message: "Contact not found" });
-    res.json(contact);
+
+    contact.favorite = favorite;
+    await contact.save();
+    res.status(200).json(contact);
   } catch (error) {
-    res.status(500).json({ message: "Error updating favorite status", error });
+    res.status(500).json({ message: error.message });
   }
 };
