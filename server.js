@@ -1,28 +1,24 @@
-require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
-
-const contactsRoutes = require("./routes/api/contacts");
+const authRoutes = require("./routes/api/auth");
+const contactRoutes = require("./routes/api/contacts");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(cors());
-
-app.use("/api/contacts", contactsRoutes);
 
 mongoose
-  .connect(process.env.DB_URI, {
+  .connect("mongodb://localhost:27017/authAPI", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => {
-    console.log("✅ Database connection successful");
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.error("❌ Database connection error:", err);
-    process.exit(1);
-  });
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.log(err));
+
+app.use("/users", authRoutes);
+app.use("/contacts", contactRoutes);
+
+const port = 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

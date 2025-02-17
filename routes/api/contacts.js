@@ -1,12 +1,30 @@
 const express = require("express");
-const router = express.Router();
-const contactsController = require("../../controllers/contactsController");
+const Contact = require("../../models/Contact");
+const authMiddleware = require("../../middlewares/auth");
 
-router.get("/", contactsController.getAllContacts);
-router.get("/:id", contactsController.getContactById);
-router.post("/", contactsController.addContact);
-router.put("/:id", contactsController.updateContact);
-router.patch("/:id/favorite", contactsController.updateFavoriteStatus);
-router.delete("/:id", contactsController.deleteContact);
+const router = express.Router();
+
+router.post("/", authMiddleware, async (req, res) => {
+  try {
+    const contact = new Contact({
+      ...req.body,
+      owner: req.user._id,
+    });
+
+    await contact.save();
+    return res.status(201).json(contact);
+  } catch (err) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/", authMiddleware, async (req, res) => {
+  try {
+    const contacts = await Contact.find({ owner: req.user._id });
+    return res.status(200).json(contacts);
+  } catch (err) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 module.exports = router;
