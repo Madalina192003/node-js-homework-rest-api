@@ -1,44 +1,38 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const gravatar = require("gravatar");
 const User = require("../models/userModel");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+
+const sendEmail = require("../helpers/sendEmail");
+
+const getNanoid = async () => {
+  const { nanoid } = await import("nanoid");
+  return nanoid;
+};
 
 const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const avatarURL = gravatar.url(email, { s: "250", d: "retro" });
+    const nanoid = await getNanoid();
+    const verificationToken = nanoid();
 
-    const newUser = await User.create({
-      email,
-      password: hashedPassword,
-      avatarURL,
-    });
-
-    res.status(201).json({ email: newUser.email, avatarURL });
+    console.log("Token generat:", verificationToken);
   } catch (error) {
-    res.status(400).json({ message: "Error registering user" });
+    console.error("❌ Eroare la generarea tokenului:", error);
+    res.status(500).json({ message: "Eroare la înregistrare" });
   }
 };
 
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+const login = async (req, res) => {};
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+const logout = async (req, res) => {};
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+const verifyEmail = async (req, res) => {};
 
-    res.json({ token, user: { email: user.email } });
-  } catch (error) {
-    res.status(500).json({ message: "Login failed" });
-  }
+const resendVerificationEmail = async (req, res) => {};
+
+module.exports = {
+  register,
+  login,
+  logout,
+  verifyEmail,
+  resendVerificationEmail,
 };
-
-// 🔥 Asigură-te că funcțiile sunt exportate corect
-module.exports = { register, login };
