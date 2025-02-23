@@ -1,21 +1,13 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const authRoutes = require("./routes/api/auth");
-const contactRoutes = require("./routes/api/contacts");
+const app = require("./app"); // Importă aplicația
+const dotenv = require("dotenv");
+const connectDB = require("./db"); // Importă funcția de conectare la MongoDB
 
-const app = express();
+dotenv.config(); // Încarcă variabilele de mediu
 
-app.use(express.json());
+const PORT = process.env.PORT || 5000;
 
-mongoose
-  .connect("mongodb://127.0.0.1:27017/authAPI")
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+connectDB(); // 🔄 Apelează funcția de conectare la baza de date
 
-app.use("/users", authRoutes);
-app.use("/contacts", contactRoutes);
-
-const port = 3000;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
