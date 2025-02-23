@@ -1,25 +1,33 @@
-const express = require('express')
-const logger = require('morgan')
-const cors = require('cors')
+const express = require("express");
+const morgan = require("morgan");
+const cors = require("cors");
+require("dotenv").config();
 
-const contactsRouter = require('./routes/api/contacts')
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 
-const app = express()
+const app = express();
 
-const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short'
+app.use(morgan("dev"));
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public"));
 
-app.use(logger(formatsLogger))
-app.use(cors())
-app.use(express.json())
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
-app.use('/api/contacts', contactsRouter)
-
-app.use((req, res) => {
-  res.status(404).json({ message: 'Not found' })
-})
+console.log("🔗 Available routes:");
+app._router.stack.forEach((r) => {
+  if (r.route && r.route.path) {
+    console.log(
+      `${Object.keys(r.route.methods)[0].toUpperCase()} ${r.route.path}`
+    );
+  }
+});
 
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message })
-})
+  console.error("❌ ERROR:", err.message);
+  res.status(500).json({ error: "Internal Server Error" });
+});
 
-module.exports = app
+module.exports = app;
